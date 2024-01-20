@@ -128,7 +128,7 @@ namespace SubredditApp.Service
 
                         if (subreddit.Posts.Count > 0) // if there are no posts, update the before and after
                         {
-                            subreddit.Before = $"{subreddit.Posts.FirstOrDefault().Id}" ?? string.Empty;
+                            subreddit.Before = $"t3_{subreddit.Posts.FirstOrDefault().Id}" ?? string.Empty;
                             subreddit.After = jObject["data"]["after"]?.ToString();
                         }
                         else if (string.IsNullOrWhiteSpace(subreddit.Before) && !string.IsNullOrWhiteSpace(before))
