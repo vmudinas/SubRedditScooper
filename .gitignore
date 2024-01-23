@@ -2,3 +2,7 @@
 *.vsidx
 .vs/
 
+SubredditApp.Tests/bin/
+SubredditApp.Tests/obj/
+SubredditApp/bin/
+SubredditApp/obj/
