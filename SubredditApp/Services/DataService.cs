@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using SubredditApp.Data;
 using SubredditApp.Data.Entities;
 using SubredditApp.Model;
+using SubredditApp.Service;
 
 namespace SubredditApp.Services
 {
@@ -13,13 +15,15 @@ namespace SubredditApp.Services
     public class DataService : IDataService
     {
         private readonly ApplicationDbContext _context;
+                private readonly ILogger<DataService> _logger;
         /// <summary>
         /// Initializes a new instance of the <see cref="DataService"/> class.
         /// </summary>
         /// <param name="dbContext">The database context.</param>
-        public DataService(ApplicationDbContext dbContext)
+        public DataService(ApplicationDbContext dbContext, ILogger<DataService> logger)
         {
-            this._context = dbContext;
+            _context = dbContext;
+            _logger = logger;
         }
 
         /// <summary>
@@ -28,7 +32,7 @@ namespace SubredditApp.Services
         /// <param name="subreddit">The subreddit.</param>
         public async Task AddPost(Subreddit subreddit)
         {
-            var dbSubreddit = await this._context.SubReddit.FirstOrDefaultAsync(x => x.Name == subreddit.Name);
+            var dbSubreddit = await _context.SubReddit.FirstOrDefaultAsync(x => x.Name == subreddit.Name);
 
             if (subreddit.Posts != null && dbSubreddit?.Id != null)
             {
@@ -43,7 +47,7 @@ namespace SubredditApp.Services
                     if (existingProduct == null)
                     {
                         // Add new posts
-                        await this._context.Posts.AddAsync(new Data.Entities.PostEntity
+                        await _context.Posts.AddAsync(new Data.Entities.PostEntity
                         {
                             Author = posts.Author,
                             Created = posts.Created,
@@ -56,6 +60,8 @@ namespace SubredditApp.Services
                             Url = posts.Url,
                             SubRedditId = dbSubreddit.Id
                         });
+
+                        this._logger.LogInformation($"AddPost: {posts.Title}");
                     }
                     else
                     {
@@ -73,10 +79,13 @@ namespace SubredditApp.Services
                             Url = posts.Url,
                             SubRedditId = dbSubreddit.Id
                         });
+
+                        this._logger.LogInformation($"Update posts: {posts.Title}");
                     }                    
                 }
 
-                await this._context.SaveChangesAsync();
+               var result = await _context.SaveChangesAsync();
+               this._logger.LogInformation($"Add/Update result: {result}"); 
             }
         }
 
@@ -131,10 +140,12 @@ namespace SubredditApp.Services
         /// <param name="name">The name.</param>
         public async Task AddSubReddit(string name)
         {
-            if (!this._context.SubReddit.Any(x => x.Name == name))
+            if (!_context.SubReddit.Any(x => x.Name == name))
             {
-                await this._context.SubReddit.AddAsync(new Data.Entities.SubRedditEntity { Name = name });
-                await this._context.SaveChangesAsync();
+                await _context.SubReddit.AddAsync(new Data.Entities.SubRedditEntity { Name = name });
+                var result = await _context.SaveChangesAsync();
+
+                this._logger.LogInformation($"Add subreddit: {name} result: {result}");
             }
         }
 
@@ -144,12 +155,13 @@ namespace SubredditApp.Services
         /// <param name="name">The name.</param>
         public async Task RemoveSubReddit(string name)
         {
-            var removeSubReddit = await this._context.SubReddit.FirstOrDefaultAsync(x => x.Name == name);
+            var removeSubReddit = await _context.SubReddit.FirstOrDefaultAsync(x => x.Name == name);
 
             if (removeSubReddit != null)
             {                
-                this._context.SubReddit.Remove(removeSubReddit);
-                await this._context.SaveChangesAsync();
+                _context.SubReddit.Remove(removeSubReddit);
+                var result = await _context.SaveChangesAsync();
+                this._logger.LogInformation($"Remove subreddit: {name} result: {result}");
             }
         }
 
@@ -159,7 +171,7 @@ namespace SubredditApp.Services
         /// <returns>IEnumerable&lt;SubRedditEntity&gt;.</returns>
         public async Task<IEnumerable<SubRedditEntity>> ListSubReddits()
         {
-           return await this._context.SubReddit.ToArrayAsync();
+           return await _context.SubReddit.ToArrayAsync();
         }
 
         /// <summary>
@@ -169,7 +181,31 @@ namespace SubredditApp.Services
         /// <returns>System.Int32.</returns>
         public async Task<int> CountPostsBySubreddit(string subreddit)
         {
-            return await this._context.Posts.CountAsync(x => x.SubReddit.Name == subreddit);
+            return await _context.Posts.CountAsync(x => x.SubReddit.Name == subreddit);
+        }
+
+        /// <summary>
+        /// Gets the posts by subreddit.
+        /// </summary>
+        /// <param name="subreddit">The subreddit.</param>
+        /// <returns>System.Int32.</returns>
+        public async Task<IEnumerable<PostDto>> GetPosts(string subreddit, int skip = 0, int take = 100)
+        {
+            return await _context.Posts.Where(x => x.SubReddit.Name == subreddit)
+                .OrderByDescending(x => x.CreatedUTC)
+                .Skip(skip)
+                .Take(take)
+                .Select(x => new PostDto { 
+                                            Id = x.Id,
+                                            Title = x.Title,
+                                            Author = x.Author,
+                                            Created = x.Created,
+                                            CreatedUTC = x.CreatedUTC,
+                                            NumberOfComments = x.NumberOfComments,
+                                            Score = x.Score,
+                                            Thumbnail = x.Thumbnail,
+                                            Url = x.Url,
+                }).ToListAsync();
         }
     }
 }

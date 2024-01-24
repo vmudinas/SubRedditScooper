@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SubredditApp.Data.Entities;
+using SubredditApp.Model;
 using SubredditApp.Services;
 
 namespace SubredditApp.Controllers
@@ -37,8 +38,9 @@ namespace SubredditApp.Controllers
         [HttpPut]
         public async Task<IActionResult> SaveSubReddit(string name)
         {
+            _logger.LogInformation($"SaveSubReddit: {name}");
             await _dataService.AddSubReddit(name);
-           return Ok();
+            return Ok();
         }
 
         /// <summary>
@@ -49,6 +51,7 @@ namespace SubredditApp.Controllers
         [HttpGet]
         public async Task<IEnumerable<SubRedditEntity>> ListSubreddits()
         {
+            _logger.LogInformation($"ListSubreddits");
             return await _dataService.ListSubReddits();
         }
 
@@ -60,7 +63,20 @@ namespace SubredditApp.Controllers
         [HttpDelete]
         public async Task RemoveSubReddit(string name)
         {
+            _logger.LogInformation($"RemoveSubReddit: {name}");
             await _dataService.RemoveSubReddit(name);
+        }
+
+        /// <summary>
+        /// Removes the sub reddit.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        [Route("GetPosts")]
+        [HttpPost]
+        public async Task<IEnumerable<PostDto>> GetPosts(string subredditName, int skip, int take)
+        {
+            _logger.LogInformation($"GetPosts: {subredditName} skip:{skip} take:{take}");
+            return await _dataService.GetPosts(subredditName, skip, take);
         }
     }
 }

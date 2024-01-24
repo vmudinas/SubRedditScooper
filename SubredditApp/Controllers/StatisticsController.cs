@@ -37,6 +37,7 @@ namespace SubredditApp.Controllers
         [HttpGet]
         public async Task<IEnumerable<UserByPostDto>> TopPostsUsers(string subreddit, int userCount = 10)
         {
+            _logger.LogInformation($"TopPostsUsers: {subreddit} {userCount}");
             return await _dataService.GetUsersWithMostPost(subreddit, userCount);
         }
 
@@ -50,6 +51,7 @@ namespace SubredditApp.Controllers
         [HttpGet]
         public async Task<IEnumerable<PostsScoreDto>> TopPosts(string subreddit, int postsCount = 10)
         {
+            _logger.LogInformation($"TopPosts: {subreddit} {postsCount}");
             return await _dataService.GetPostsWithHighestScore(subreddit, postsCount);
         }
 
@@ -62,6 +64,7 @@ namespace SubredditApp.Controllers
         [HttpGet]
         public async Task<int> CountPosts(string subreddit)
         {
+            _logger.LogInformation($"CountPosts: {subreddit}");
             return await _dataService.CountPostsBySubreddit(subreddit);
         }
     }

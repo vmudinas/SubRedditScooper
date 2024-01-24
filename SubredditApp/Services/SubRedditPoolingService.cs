@@ -23,8 +23,8 @@ namespace SubredditApp.Service
             ILogger<SubRedditPoolingService> logger,
             IServiceProvider serviceScopeFactory)
         {
-            this._logger = logger;
-            this._serviceScopeFactory = serviceScopeFactory;
+            _logger = logger;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace SubredditApp.Service
                         // Depending what comes back as rate limit 
                         // We can wait here
                         // Also we can store data from result in db here
-                        var subredditData = await this.GetSubRedditData(subreddit);
+                        var subredditData = await GetSubRedditData(subreddit);
 
                         if (subredditData != null && !string.IsNullOrWhiteSpace(subreddit.Name))
                         {
@@ -53,15 +53,15 @@ namespace SubredditApp.Service
                     }
                     catch (ArgumentNullException ex)
                     {
-                        this._logger.LogError($"Argument null exception: {ex.Message} {ex.InnerException?.Message}");
+                        _logger.LogError($"Argument null exception: {ex.Message} {ex.InnerException?.Message}");
                     }
                     catch (InvalidOperationException ex)
                     {
-                        this._logger.LogError($"Invalid operation exception: {ex.Message} {ex.InnerException?.Message}");
+                        _logger.LogError($"Invalid operation exception: {ex.Message} {ex.InnerException?.Message}");
                     }
                     catch (Exception ex)
                     {
-                        this._logger.LogError($"Error while cloning product shelf {ex.Message} {ex.InnerException?.Message}");
+                        _logger.LogError($"Error while cloning product shelf {ex.Message} {ex.InnerException?.Message}");
                     }
                 }
 
@@ -71,7 +71,7 @@ namespace SubredditApp.Service
 
         private async Task<Subreddit?> GetSubRedditData(SubRedditEntity subreddit)
         {
-            using var scope = this._serviceScopeFactory.CreateScope();
+            using var scope = _serviceScopeFactory.CreateScope();
             var serviceProvider = scope.ServiceProvider;
             var redditService = serviceProvider.GetRequiredService<IRedditService>();
 
@@ -85,7 +85,7 @@ namespace SubredditApp.Service
 
         private async Task<IEnumerable<SubRedditEntity>> GetSubReddits()
         {
-            using var scope = this._serviceScopeFactory.CreateScope();
+            using var scope = _serviceScopeFactory.CreateScope();
             var serviceProvider = scope.ServiceProvider;
             var dataService = serviceProvider.GetRequiredService<IDataService>();
 
@@ -99,7 +99,7 @@ namespace SubredditApp.Service
 
         private async Task AddPost(Subreddit subreddit)
         {
-            using var scope = this._serviceScopeFactory.CreateScope();
+            using var scope = _serviceScopeFactory.CreateScope();
             var serviceProvider = scope.ServiceProvider;
             var dataService = serviceProvider.GetRequiredService<IDataService>();
 

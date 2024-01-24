@@ -175,15 +175,15 @@ namespace SubredditApp.Service
         /// <returns>Task.</returns>
         private async Task DelayPool()
         {
-            if (this._rateLimitRemaining > 0)
+            if (_rateLimitRemaining > 0)
             {
                 // Spread out the remaining requests evenly over the reset period
-                await Task.Delay(this._rateLimitReset / this._rateLimitRemaining * 1000);
+                await Task.Delay(_rateLimitReset / _rateLimitRemaining * 1000);
             }
             else
             {
                 // wait for the reset period
-                await Task.Delay(this._rateLimitReset * 1000);
+                await Task.Delay(_rateLimitReset * 1000);
             }
         }
     }
